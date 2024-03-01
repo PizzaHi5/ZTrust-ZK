@@ -18,6 +18,15 @@ use alloy_primitives::U256;
 use alloy_sol_types::SolValue;
 use risc0_zkvm::guest::env;
 
+/*
+    GOAL: Prove a malicious state change has occurred
+
+    Input: Current State
+    Input: Expected State
+
+    If expect != output, proof fails
+*/
+
 fn main() {
     // Read the input data for this application.
     let mut input_bytes = Vec::<u8>::new();
