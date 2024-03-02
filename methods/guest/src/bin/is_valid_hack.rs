@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io::Read;
+use std::{io::Read, ops::Add};
 
 extern crate alloc;
 use alloy_primitives::U256;
-use alloy_sol_types::SolValue;
+use alloy_sol_types::{sol, SolInterface, SolValue, SolType}; //SolInterface, SolStruct
 use risc0_zkvm::guest::env;
 
 /*
@@ -37,23 +37,33 @@ use risc0_zkvm::guest::env;
 
 fn main() {
     // Read the input data for this application.
-
+    type InputData = sol!((uint256, uint256));
+    
     // Read
     let mut input_bytes = Vec::<u8>::new();
+    //let (score, code_line) = InputData::abi_decode(&journal, true).context("decoding journal data")?;
     env::stdin().read_to_end(&mut input_bytes).unwrap();
     // Decode and parse the input
-    let number = <U256>::abi_decode(&input_bytes, true).unwrap();
-    //let str: String = <String>::abi_en
-    //env::stdin().read_words("words")
-    // Run the computation.
-    // In this case, asserting that the provided number is even.
-    assert!(number.bit(0) == false, "number is not even");
+    let (score, code_line) = InputData::abi_decode(&input_bytes, true).unwrap();
+    //let number = <U256>::abi_decode(&input_bytes, true).unwrap();
 
+    // Run the computation.
+    // In this case, asserting 
+    //score.bit(0) = 0;
+    assert!(score.bit(0) == false, "number is not even");
+    score.add(code_line);
 
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.
 
     // commit_slice gets pushed to the smart contract, public output
+    /*
+        Public Outputs:
+        address
+        function signature
+        calldata
+        score
+     */
     env::commit_slice(number.abi_encode().as_slice());
 }

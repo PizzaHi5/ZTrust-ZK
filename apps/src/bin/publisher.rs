@@ -17,16 +17,20 @@
 // to your deployed app contract.
 
 use alloy_primitives::U256;
-use alloy_sol_types::{sol, SolInterface, SolValue};
+use alloy_sol_types::{sol, SolInterface, SolValue, SolType}; //SolInterface, SolStruct
 use anyhow::{Context, Result};
 use apps::{BonsaiProver, TxSender};
 use clap::Parser;
 use methods::IS_EVEN_ELF;
 
-// `IEvenNumber` interface automatically generated via the alloy `sol!` macro.
+// `ITrust` interface automatically generated via the alloy `sol!` macro.
 sol! {
-    interface IEvenNumber {
-        function set(uint256 x, bytes32 post_state_digest, bytes calldata seal);
+    interface ITrust {
+        // struct TrustData{
+        //     uint256 score;
+        //     uint256 code_line;
+        // }
+        function rateFinding(uint256 score, uint256 code_line, bytes32 postStateDigest, bytes calldata seal);
     }
 }
 
@@ -52,7 +56,8 @@ struct Args {
 
     /// The input to provide to the guest binary
     #[clap(short, long)]
-    input: U256,
+    score: U256,
+    code_line: U256,
 }
 
 fn main() -> Result<()> {
@@ -69,19 +74,28 @@ fn main() -> Result<()> {
 
     // ABI encode the input for the guest binary, to match what the `is_even` guest
     // code expects.
-    let input = args.input.abi_encode();
+    // let input_score = args.score.abi_encode();
+    // let input_code_line = args.code_line.abi_encode();
+    // let input_calldata = args.calldata.abi_encode();
+
+    type InputData = sol!((uint256, uint256));
+    let input = (&args.score, &args.code_line);
+    let input_data = &input.abi_encode();
+    //let input_data: InputData = (&input_score, &input_code_line, &input_calldata).abi_encode();
 
     // Send an off-chain proof request to the Bonsai proving service.
-    let (journal, post_state_digest, seal) = BonsaiProver::prove(IS_EVEN_ELF, &input)?;
+    let (journal, post_state_digest, seal) = BonsaiProver::prove(IS_EVEN_ELF, &input_data)?;
 
     // Decode the journal. Must match what was written in the guest with
     // `env::commit_slice`.
-    let x = U256::abi_decode(&journal, true).context("decoding journal data")?;
-
+    let (score, code_line) = InputData::abi_decode(&journal, true).context("decoding journal data")?;
+    //String::abi_decode_sequence(data, validate)
+    //let output = (&score, &code_line);
     // Encode the function call for `IEvenNumber.set(x)`.
-    let calldata = IEvenNumber::IEvenNumberCalls::set(IEvenNumber::setCall {
-        x,
-        post_state_digest,
+    let calldata = ITrust::ITrustCalls::rateFinding(ITrust::rateFindingCall {
+        score,
+        code_line,
+        postStateDigest: post_state_digest,
         seal,
     })
     .abi_encode();
