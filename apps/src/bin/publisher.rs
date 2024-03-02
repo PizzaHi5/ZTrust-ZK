@@ -27,7 +27,7 @@ use methods::IS_VALID_ELF;
 // `ITrust` interface automatically generated via the alloy `sol!` macro.
 sol! {
     interface ITrust {
-        function rateFinding(uint256 score, uint256 code_line, bytes32 postStateDigest, bytes calldata seal);
+        function rateFinding(uint256 score, uint256 code_line, address sender, bytes32 postStateDigest, bytes calldata seal);
     }
 }
 
@@ -90,6 +90,7 @@ fn main() -> Result<()> {
     let calldata = ITrust::ITrustCalls::rateFinding(ITrust::rateFindingCall {
         score,
         code_line,
+        sender,
         postStateDigest: post_state_digest,
         seal,
     })

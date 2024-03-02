@@ -7,9 +7,10 @@ ffi = true
 
 [rpc_endpoints]
 sepolia = "${SEPOLIA_RPC_URL}"
+zircuit = "${ZIRCUIT_RPC_URL}"
 
 [etherscan]
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
-
+zircuit = { key = "${ZIRCUIT_API_KEY}" }
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

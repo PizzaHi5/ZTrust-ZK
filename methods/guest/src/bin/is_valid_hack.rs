@@ -39,8 +39,9 @@ fn main() {
 
     // Security Reviewer 1
     let checksummed = "0x096f6A2b185d63D942750A2D961f7762401cbA17";
-    //let expected = address!("0x096f6A2b185d63D942750A2D961f7762401cbA17");
+    //let address = address!("0x096f6A2b185d63D942750A2D961f7762401cbA17");
     let address = Address::parse_checksummed(checksummed, None).expect("valid checksum");
+    
     let mut addresses: Vec<Address> = Vec::new();
 
     addresses.push(address);
@@ -51,12 +52,13 @@ fn main() {
             is_valid_address = true;
         }
     }
+    // check if calling address is approved
     assert!(is_valid_address, "ERROR: Invalid User");
-    //future: address interacting is an approved address
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.
     // commit_slice gets pushed to the smart contract, public output
     env::commit_slice(score.abi_encode().as_slice());
     env::commit_slice(code_line.abi_encode().as_slice());
+    env::commit_slice(address.abi_encode().as_slice());
 }

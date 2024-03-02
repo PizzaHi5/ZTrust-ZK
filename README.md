@@ -67,3 +67,7 @@ cargo run --bin publisher -- \
 Sepolia Deployed Contracts:
 ValidReviewer = 0x4f442938F71EC57656957533A943eeE721499709
 RiscZeroGroth16Verifier = 0x4f433AFCF539f910a4570645805323E890C77924
+
+Backup Contract:
+ValidReviewer = 0x4FdCfaA39C25503B19C3075523806F89412d7c98
+RiscZeroGroth16Verifier = 0xEC9985423EBE6135ca95B41eDDD8DD6d205e362e
