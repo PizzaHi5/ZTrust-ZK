@@ -18,16 +18,17 @@ pragma solidity ^0.8.20;
 
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {ImageID} from "./ImageID.sol"; // auto-generated contract after running `cargo build`.
+import {IValidReviewer} from "./interface/IValidReviewer.sol";
 
 /// @title A starter application using RISC Zero.
 /// @notice This basic application holds a number, guaranteed to be even.
 /// @dev This contract demonstrates one pattern for offloading the computation of an expensive
 ///      or difficult to implement function to a RISC Zero guest running on Bonsai.
-contract ValidReviewer {
+contract ValidReviewer is IValidReviewer {
     /// @notice RISC Zero verifier contract address.
     IRiscZeroVerifier public immutable verifier;
     /// @notice Image ID of the only zkVM binary to accept verification from.
-    bytes32 public constant imageId = ImageID.IS_VALID_HACK_ID;
+    bytes32 public constant imageId = ImageID.IS_VALID_ID;
 
     /// @notice A number that is guaranteed, by the RISC Zero zkVM, to be even.
     ///         It can be set by calling the `set` function.
@@ -39,15 +40,15 @@ contract ValidReviewer {
     }
 
     /// @notice Set the even number stored on the contract. Requires a RISC Zero proof that the number is even.
-    function rateFinding(uint256 score, uint256 line, bytes32 postStateDigest, bytes calldata seal) public {
+    function rateFinding(uint256 score, uint256 line, bytes32 postStateDigest, bytes calldata seal) external {
         // Construct the expected journal data. Verify will fail if journal does not match.
-        bytes memory journal = abi.encode(score, line);
+        bytes memory journal = abi.encode(score, line, msg.sender);
         require(verifier.verify(seal, imageId, postStateDigest, sha256(journal)));
         scores[line] += score;
     }
 
     /// @notice Returns the values
-    function getScore(uint256 line) public view returns (uint256 score) {
+    function getScore(uint256 line) external view returns (uint256 score) {
         return scores[line];
     }
 }

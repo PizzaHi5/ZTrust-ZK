@@ -14,7 +14,7 @@
 
 use std::io::Read;
 
-use alloy_primitives::U256;
+use alloy_primitives::{U256, Address}; //address is also useful
 use alloy_sol_types::{sol, SolValue, SolType}; //SolInterface, SolStruct
 use risc0_zkvm::guest::env;
 /*
@@ -22,21 +22,36 @@ use risc0_zkvm::guest::env;
 */
 fn main() {
     // Read the input data for this application.
-    type InputData = sol!((uint256, uint256));
+    type InputData = sol!((uint256, uint256, address));
     
     // Read
     let mut input_bytes = Vec::<u8>::new();
     //let (score, code_line) = InputData::abi_decode(&journal, true).context("decoding journal data")?;
     env::stdin().read_to_end(&mut input_bytes).unwrap();
     // Decode and parse the input
-    let (score, code_line) = InputData::abi_decode(&input_bytes, true).unwrap();
+    let (score, code_line, sender) = InputData::abi_decode(&input_bytes, true).unwrap();
     //let number = <U256>::abi_decode(&input_bytes, true).unwrap();
 
     // Run the computation
     // ZKP portion
     let max_score = <U256>::from(6);
     assert!(score.lt(&max_score), "ERROR: Score > MaxScore");
+
+    // Security Reviewer 1
+    let checksummed = "0x096f6A2b185d63D942750A2D961f7762401cbA17";
+    //let expected = address!("0x096f6A2b185d63D942750A2D961f7762401cbA17");
+    let address = Address::parse_checksummed(checksummed, None).expect("valid checksum");
+    let mut addresses: Vec<Address> = Vec::new();
+
+    addresses.push(address);
     
+    let mut is_valid_address = false;
+    for address in addresses.iter() {
+        if &sender == address {
+            is_valid_address = true;
+        }
+    }
+    assert!(is_valid_address, "ERROR: Invalid User");
     //future: address interacting is an approved address
 
     // Commit the journal that will be received by the application contract.

@@ -16,12 +16,13 @@
 // to the Bonsai proving service and publish the received proofs directly
 // to your deployed app contract.
 
-use alloy_primitives::U256;
+use alloy_primitives::{U256, Address};
+//use alloy_sol_types::private::Address;
 use alloy_sol_types::{sol, SolInterface, SolValue, SolType}; //SolInterface, SolStruct
 use anyhow::{Context, Result};
 use apps::{BonsaiProver, TxSender};
 use clap::Parser;
-use methods::IS_EVEN_ELF;
+use methods::IS_VALID_ELF;
 
 // `ITrust` interface automatically generated via the alloy `sol!` macro.
 sol! {
@@ -54,6 +55,7 @@ struct Args {
     #[clap(short, long)]
     score: U256,
     code_line: U256,
+    address: Address,
 }
 
 fn main() -> Result<()> {
@@ -72,17 +74,17 @@ fn main() -> Result<()> {
     // let input_score = args.score.abi_encode();
     // let input_code_line = args.code_line.abi_encode();
     // let input_calldata = args.calldata.abi_encode();
-    type InputData = sol!((uint256, uint256));
-    let input = (&args.score, &args.code_line);
+    type InputData = sol!((uint256, uint256, address));
+    let input = (&args.score, &args.code_line, &args.address);
     let input_data = &input.abi_encode();
     //let input_data: InputData = (&input_score, &input_code_line, &input_calldata).abi_encode();
 
     // Send an off-chain proof request to the Bonsai proving service.
-    let (journal, post_state_digest, seal) = BonsaiProver::prove(IS_EVEN_ELF, &input_data)?;
+    let (journal, post_state_digest, seal) = BonsaiProver::prove(IS_VALID_ELF, &input_data)?;
 
     // Decode the journal. Must match what was written in the guest with
     // `env::commit_slice`
-    let (score, code_line) = InputData::abi_decode(&journal, true).context("decoding journal data")?;
+    let (score, code_line, _addr) = InputData::abi_decode(&journal, true).context("decoding journal data")?;
   
     // Encode the function call for `ITrustCalls.rateFinding(score, code_line)`
     let calldata = ITrust::ITrustCalls::rateFinding(ITrust::rateFindingCall {
