@@ -26,10 +26,6 @@ use methods::IS_EVEN_ELF;
 // `ITrust` interface automatically generated via the alloy `sol!` macro.
 sol! {
     interface ITrust {
-        // struct TrustData{
-        //     uint256 score;
-        //     uint256 code_line;
-        // }
         function rateFinding(uint256 score, uint256 code_line, bytes32 postStateDigest, bytes calldata seal);
     }
 }
@@ -73,11 +69,9 @@ fn main() -> Result<()> {
     )?;
 
     // ABI encode the input for the guest binary, to match what the `is_even` guest
-    // code expects.
     // let input_score = args.score.abi_encode();
     // let input_code_line = args.code_line.abi_encode();
     // let input_calldata = args.calldata.abi_encode();
-
     type InputData = sol!((uint256, uint256));
     let input = (&args.score, &args.code_line);
     let input_data = &input.abi_encode();
@@ -87,11 +81,10 @@ fn main() -> Result<()> {
     let (journal, post_state_digest, seal) = BonsaiProver::prove(IS_EVEN_ELF, &input_data)?;
 
     // Decode the journal. Must match what was written in the guest with
-    // `env::commit_slice`.
+    // `env::commit_slice`
     let (score, code_line) = InputData::abi_decode(&journal, true).context("decoding journal data")?;
-    //String::abi_decode_sequence(data, validate)
-    //let output = (&score, &code_line);
-    // Encode the function call for `IEvenNumber.set(x)`.
+  
+    // Encode the function call for `ITrustCalls.rateFinding(score, code_line)`
     let calldata = ITrust::ITrustCalls::rateFinding(ITrust::rateFindingCall {
         score,
         code_line,

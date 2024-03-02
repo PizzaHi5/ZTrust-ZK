@@ -23,7 +23,7 @@ import {ImageID} from "./ImageID.sol"; // auto-generated contract after running 
 /// @notice This basic application holds a number, guaranteed to be even.
 /// @dev This contract demonstrates one pattern for offloading the computation of an expensive
 ///      or difficult to implement function to a RISC Zero guest running on Bonsai.
-contract EvenNumber {
+contract ValidReviewer {
     /// @notice RISC Zero verifier contract address.
     IRiscZeroVerifier public immutable verifier;
     /// @notice Image ID of the only zkVM binary to accept verification from.
@@ -39,9 +39,7 @@ contract EvenNumber {
     }
 
     /// @notice Set the even number stored on the contract. Requires a RISC Zero proof that the number is even.
-        function rateFinding(uint256 score, uint256 line, bytes32 postStateDigest, bytes calldata seal) public {
-        // Check the Scorer has not already submitted a score
-        require(score < 6, "Cannot rate more than 5");
+    function rateFinding(uint256 score, uint256 line, bytes32 postStateDigest, bytes calldata seal) public {
         // Construct the expected journal data. Verify will fail if journal does not match.
         bytes memory journal = abi.encode(score, line);
         require(verifier.verify(seal, imageId, postStateDigest, sha256(journal)));

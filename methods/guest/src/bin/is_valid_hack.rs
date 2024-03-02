@@ -12,29 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{io::Read, ops::Add};
+use std::io::Read;
 
-extern crate alloc;
 use alloy_primitives::U256;
-use alloy_sol_types::{sol, SolInterface, SolValue, SolType}; //SolInterface, SolStruct
+use alloy_sol_types::{sol, SolValue, SolType}; //SolInterface, SolStruct
 use risc0_zkvm::guest::env;
-
 /*
-    GOAL: Prove a malicious state change has occurred
-
-    Input: Current State
-    Input: Expected State
-
-    If expect != output, proof fails
-
-    ANOTHER TRY
-    Input: Calldata
-    Input: Function Signature
-    Input: Address
-
-    Run_simulation
+    
 */
-
 fn main() {
     // Read the input data for this application.
     type InputData = sol!((uint256, uint256));
@@ -47,23 +32,16 @@ fn main() {
     let (score, code_line) = InputData::abi_decode(&input_bytes, true).unwrap();
     //let number = <U256>::abi_decode(&input_bytes, true).unwrap();
 
-    // Run the computation.
-    // In this case, asserting 
-    //score.bit(0) = 0;
-    assert!(score.bit(0) == false, "number is not even");
-    score.add(code_line);
-
+    // Run the computation
+    // ZKP portion
+    let max_score = <U256>::from(6);
+    assert!(score.lt(&max_score), "ERROR: Score > MaxScore");
+    
+    //future: address interacting is an approved address
 
     // Commit the journal that will be received by the application contract.
     // Journal is encoded using Solidity ABI for easy decoding in the app contract.
-
     // commit_slice gets pushed to the smart contract, public output
-    /*
-        Public Outputs:
-        address
-        function signature
-        calldata
-        score
-     */
-    env::commit_slice(number.abi_encode().as_slice());
+    env::commit_slice(score.abi_encode().as_slice());
+    env::commit_slice(code_line.abi_encode().as_slice());
 }
